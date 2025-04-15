@@ -1,14 +1,15 @@
-trigger:
+rigger:
 - main
 
 pool:
-  name: Default
+  name: selfhostedagent
 
 variables:
   IMAGE_NAME: api-projeto
   IMAGE_TAG: v1
   REGISTRY_NAME: meuacrprojeto
   DOCKERFILE_PATH: Dockerfile
+  AZURE_STORAGE_CONNECTION_STRING: $(AZURE_STORAGE_CONNECTION_STRING)  # <- variável secreta
 
 steps:
 - script: |
@@ -17,9 +18,9 @@ steps:
 
     echo "Instalar dependências e ferramentas..."
     python3 -m pip install --upgrade pip
-    pip3 install -r requirements.txt
-    pip3 install flake8
-    pip3 install pytest
+    pip install -r requirements.txt
+    pip install flake8
+    pip install pytest
   displayName: 'Instalar dependências, flake8 e pytest'
 
 - script: |
@@ -29,13 +30,9 @@ steps:
   continueOnError: true
 
 - script: |
-    echo "Iniciar o servidor Flask em background..."
-    python3 run.py &
-    sleep 5
-
-    echo "Executar testes funcionais..."
+    echo "Executar testes funcionais simulados com mock..."
     python3 teste_endpoints.py
-  displayName: 'Testes funcionais com servidor ativo'
+  displayName: 'Testes funcionais simulados com servidor mockado'
 
 - script: |
     echo "Executar testes unitários com pytest..."
