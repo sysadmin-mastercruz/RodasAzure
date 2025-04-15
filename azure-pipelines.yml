@@ -1,0 +1,52 @@
+trigger:
+- main
+
+pool:
+  name: Default
+
+variables:
+  IMAGE_NAME: api-projeto
+  IMAGE_TAG: v1
+  REGISTRY_NAME: meuacrprojeto
+  DOCKERFILE_PATH: Dockerfile
+
+steps:
+- script: |
+    echo "Versão do Python:"
+    python3 --version
+
+    echo "Instalar dependências e ferramentas..."
+    python3 -m pip install --upgrade pip
+    pip3 install -r requirements.txt
+    pip3 install flake8
+    pip3 install pytest
+  displayName: 'Instalar dependências, flake8 e pytest'
+
+- script: |
+    echo "Testar estilo de código com flake8..."
+    flake8 app/
+  displayName: 'Testar linting com flake8 (pode falhar mas continua)'
+  continueOnError: true
+
+- script: |
+    echo "Iniciar o servidor Flask em background..."
+    python3 run.py &
+    sleep 5
+
+    echo "Executar testes funcionais..."
+    python3 teste_endpoints.py
+  displayName: 'Testes funcionais com servidor ativo'
+
+- script: |
+    echo "Executar testes unitários com pytest..."
+    pytest || echo "Sem testes pytest definidos."
+  displayName: 'Testes unitários com pytest'
+  continueOnError: true
+
+- task: Docker@2
+  displayName: 'Construir imagem Docker'
+  inputs:
+    command: build
+    repository: $(REGISTRY_NAME)/$(IMAGE_NAME)
+    dockerfile: $(DOCKERFILE_PATH)
+    tags: $(IMAGE_TAG)

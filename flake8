@@ -1,0 +1,8 @@
+[flake8]
+max-line-length = 120
+exclude = .venv,venv,__pycache__
+ignore =
+    E501,
+    W293,
+    W292,
+    E302
